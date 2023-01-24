@@ -10,19 +10,24 @@ namespace HttpServer
     public class UnityTCPServer : MonoBehaviour
     {
         [SerializeField] private bool startOnAwake = true;
-        private HttpListener _listener = null;
+        [SerializeField] private ServerProperties properties;
+        [SerializeField] private MediaStorageProperties mediaStorageProperties;
+        private HttpListener _listener;
         private bool _isRunning = true;
+        private MediaSaver _mediaSaver;
 
         private Thread _listenerThread;
-        private static string HTML = "";
-        private static string URI = "127.0.0.1";
-        private static string PORT = "8080";
-        private string URL => $"http://{URI}:{PORT}";
+
+        private string URL => $"http://{properties.IP}:{properties.PORT}";
         private string GetEndpoint(string api) => $"{URL}/{api}";
+
+        private void Awake()
+        {
+            _mediaSaver = new MediaSaver(mediaStorageProperties);
+        }
 
         void Start()
         {
-            HTML = GetHtmlAddress();
             if(startOnAwake) StartServer();
         }
 
@@ -39,14 +44,13 @@ namespace HttpServer
             _listenerThread.Start();
         }
 
-        private string GetHtmlAddress()
+        private string GetHtml()
         {
-            var t = Resources.Load("Dashboard");
-            var file = ((TextAsset) t).text;
-            return file;
+            var htmlCode = properties.HtmlPage.text;
+            return htmlCode;
         }
 
-        private void RunServer()
+        private void RunServer() 
         {
             while (_isRunning)
             {
@@ -114,6 +118,7 @@ namespace HttpServer
 
         private void SaveBinaryFile(HttpListenerContext context, string filePath, int fileLength)
         {
+            
             var fileStream = new FileStream(filePath, FileMode.OpenOrCreate);
 
             using (var data = new BinaryReader(context.Request.InputStream))
@@ -127,8 +132,14 @@ namespace HttpServer
                 }
                 data.Close();
             }
-            
 
+        }
+
+        private void SaveImage(HttpListenerContext context,  string extension, int fileLength)
+        {
+            using var reader = new BinaryReader(context.Request.InputStream);
+            _mediaSaver.SaveImage(reader.ReadBytes(fileLength), extension);
+            reader.Close();
         }
 
         private void HandleHomepage(HttpListenerContext context)
@@ -141,9 +152,30 @@ namespace HttpServer
             
             var response = context.Response;
 
-            SendMessage(response, HTML);
+            SendMessage(response, GetHtml());
         }
 
+        private void ListenGET(HttpListenerContext context, string endpoint, Action<HttpListenerResponse> callback)
+        {
+            if(!IsValidGetRequest(context.Request, endpoint)) return;
+
+            callback?.Invoke(context.Response);
+            
+            SendOk(context.Response);
+        }
+
+        private void Listen(HttpListenerContext context, string method, string endpoint,
+            Action<HttpListenerResponse> callback)
+        {
+            var request = context.Request;
+            if (!CheckRequestMethod(request, method)) return;
+
+            if (!CheckRequestEndpoint(request, endpoint)) return;
+            
+            callback?.Invoke(context.Response);
+            
+            SendOk(context.Response);
+        }
         private void HandleAudioToggle(HttpListenerContext context)
         {
             var request = context.Request;
@@ -246,13 +278,11 @@ namespace HttpServer
                 return;
             }
             
-            var fileAdrs = $"image.{extension}";
 
-            SaveBinaryFile(context, fileAdrs, length);
+            SaveImage(context, extension, length);
 
             Thread.Sleep(1000);
 
-            ServerEventListener.ImagePath = fileAdrs;
             ServerEventListener.ImageReceived = true;
 
 
