@@ -9,16 +9,19 @@ namespace HttpServer
         [SerializeField] private int imageIndex;
 
         [SerializeField] private string tempFilePath;
+        [SerializeField] private string imageResourcesPath;
 
-        public string ImageRootPath => imageRootPath;
+        public string ImageRootPath => $"Assets/Resources/{imageResourcesPath}";
 
         public int ImageIndex => imageIndex;
 
         public string TempFilePath => tempFilePath;
 
+        public string ImageResourcesPath => imageResourcesPath;
+
         public string GetImagePath()
         {
-            return $"{imageRootPath}/image-{imageIndex}";
+            return $"{ImageRootPath}/image-{imageIndex}";
         }
 
         public void IncreaseIndex()

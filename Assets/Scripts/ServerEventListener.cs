@@ -18,6 +18,7 @@ public class ServerEventListener : MonoBehaviour
     public AudioSource sfx;
     public AudioSource musicSource;
 
+    public MediaViewerUI mediaUI;
     public static string ImagePath;
     public static string AudioPath;
 
@@ -40,7 +41,7 @@ public class ServerEventListener : MonoBehaviour
         if (ImageReceived)
         {
             ImageReceived = false;
-            SetTheTexture();
+            mediaUI.Refresh();
         }
         if (ChangeImageSignal)
         {

@@ -281,7 +281,7 @@ namespace HttpServer
 
             SaveImage(context, extension, length);
 
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
 
             ServerEventListener.ImageReceived = true;
 
