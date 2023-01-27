@@ -12,5 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68abbf4326d5491bb7984f038ddac8f1, type: 3}
   m_Name: Server-Properties
   m_EditorClassIdentifier: 
-  IP: 
-  PORT: 
+  IP: 10.122.80.125
+  PORT: 8080
+  HtmlPage: {fileID: 4900000, guid: acd22e372be04066afaf3f0b7763e82c, type: 3}
