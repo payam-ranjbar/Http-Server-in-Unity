@@ -11,6 +11,7 @@ namespace HttpServer
     {
         [SerializeField] private bool startOnAwake = true;
         [SerializeField] private ServerProperties properties;
+        [SerializeField] private HtmlProvider htmlProvider;
         [SerializeField] private MediaStorageProperties mediaStorageProperties;
         private HttpListener _listener;
         private bool _isRunning = true;
@@ -152,7 +153,11 @@ namespace HttpServer
             
             var response = context.Response;
 
-            SendMessage(response, GetHtml());
+            htmlProvider.ReadHomePage();
+            
+            Thread.Sleep(1000);
+            
+            SendMessage(response, htmlProvider.HomePage);
         }
 
         private void ListenGET(HttpListenerContext context, string endpoint, Action<HttpListenerResponse> callback)
